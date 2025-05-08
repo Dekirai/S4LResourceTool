@@ -13,8 +13,8 @@ namespace S4LResourceTool
         public DateTime LastModified { get; set; }
         public TrackData(S4ZipEntry entry, DateTime lastModified)
         {
-            this.Entry = entry;
-            this.LastModified = lastModified;
+            Entry = entry;
+            LastModified = lastModified;
         }
     }
 }

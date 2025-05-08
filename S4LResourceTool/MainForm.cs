@@ -331,7 +331,7 @@ namespace S4LResourceTool
 
         private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            ListViewItem focusedItem = this.listView1.FocusedItem;
+            ListViewItem focusedItem = listView1.FocusedItem;
             if (e.Button == MouseButtons.Left && focusedItem.Bounds.Contains(e.Location))
             {
                 if (focusedItem.Tag is S4ZipEntry)
@@ -415,8 +415,6 @@ namespace S4LResourceTool
                 }
                 try
                 {
-                    //this.imageDisplay.Visible = false;
-                    //this.imageDisplay.Image = null;
                     textDisplay.Enabled = false;
                     textDisplay.Visible = false;
                 }
@@ -434,22 +432,6 @@ namespace S4LResourceTool
                             textDisplay.Text = @string;
                             break;
                         }
-                    //case ExtensionType.Image:
-                    //    {
-                    //        byte[] data = s4ZipEntry.GetData();
-                    //        if (data != null)
-                    //        {
-                    //            Image image = Preview.LoadImage(data, extension);
-                    //            this.imageDisplay.Enabled = true;
-                    //            this.imageDisplay.Visible = true;
-                    //            this.imageDisplay.Image = image;
-                    //            if (image != null)
-                    //            {
-                    //                this.imageDisplay.SizeMode = ((image.Width > this.imageDisplay.Width || image.Height > this.imageDisplay.Height) ? PictureBoxSizeMode.Zoom : PictureBoxSizeMode.CenterImage);
-                    //            }
-                    //        }
-                    //        break;
-                    //    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -462,7 +444,7 @@ namespace S4LResourceTool
 
         private void tree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            _currentPath = this.tree.SelectedNode.FullPath.Replace("_resources", "").Replace('\\', '/');
+            _currentPath = tree.SelectedNode.FullPath.Replace("_resources", "").Replace('\\', '/');
             if (_currentPath.Length > 0 && _currentPath.First<char>() == '/')
             {
                 _currentPath = _currentPath.Substring(1);
@@ -471,7 +453,7 @@ namespace S4LResourceTool
         }
 
         private void bt_Save_Click(object sender, EventArgs e)
-        { 
+        {
             _zipFile.Save();
             foreach (string path in _deletedItems)
             {
@@ -486,7 +468,7 @@ namespace S4LResourceTool
         private void bt_SaveFile_Click(object sender, EventArgs e)
         {
             string output = "";
-            if (this.listView1.SelectedItems.Count > 1 || this.listView1.SelectedItems[0].Tag is string)
+            if (listView1.SelectedItems.Count > 1 || listView1.SelectedItems[0].Tag is string)
             {
                 using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
                 {
@@ -501,7 +483,7 @@ namespace S4LResourceTool
                     return;
                 }
             }
-            S4ZipEntry s4ZipEntry = this.listView1.SelectedItems[0].Tag as S4ZipEntry;
+            S4ZipEntry s4ZipEntry = listView1.SelectedItems[0].Tag as S4ZipEntry;
             if (s4ZipEntry != null)
             {
                 using (SaveFileDialog saveFileDialog = new SaveFileDialog())
@@ -523,7 +505,7 @@ namespace S4LResourceTool
             }
         IL_155:
             List<object> list = new List<object>();
-            foreach (object obj in this.listView1.SelectedItems)
+            foreach (object obj in listView1.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 list.Add(listViewItem.Tag);
@@ -596,7 +578,7 @@ namespace S4LResourceTool
         private void OnCtxSave(object sender, EventArgs e)
         {
             string output = "";
-            if (this.listView1.SelectedItems.Count > 1 || this.listView1.SelectedItems[0].Tag is string)
+            if (listView1.SelectedItems.Count > 1 || listView1.SelectedItems[0].Tag is string)
             {
                 using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
                 {
@@ -611,7 +593,7 @@ namespace S4LResourceTool
                     return;
                 }
             }
-            S4ZipEntry s4ZipEntry = this.listView1.SelectedItems[0].Tag as S4ZipEntry;
+            S4ZipEntry s4ZipEntry = listView1.SelectedItems[0].Tag as S4ZipEntry;
             if (s4ZipEntry != null)
             {
                 using (SaveFileDialog saveFileDialog = new SaveFileDialog())
@@ -633,7 +615,7 @@ namespace S4LResourceTool
             }
         IL_155:
             List<object> list = new List<object>();
-            foreach (object obj in this.listView1.SelectedItems)
+            foreach (object obj in listView1.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 list.Add(listViewItem.Tag);
@@ -670,13 +652,13 @@ namespace S4LResourceTool
 
         private void OnCtxDelete(object sender, EventArgs e)
         {
-            string arg = (this.listView1.SelectedItems.Count == 1) ? "item" : "items";
-            if (MessageBox.Show(string.Format("Are you sure you want to delete {0} {1}?", this.listView1.SelectedItems.Count, arg), "Delete", MessageBoxButtons.YesNo) != DialogResult.Yes)
+            string arg = (listView1.SelectedItems.Count == 1) ? "item" : "items";
+            if (MessageBox.Show(string.Format("Are you sure you want to delete {0} {1}?", listView1.SelectedItems.Count, arg), "Delete", MessageBoxButtons.YesNo) != DialogResult.Yes)
             {
                 return;
             }
             List<object> list = new List<object>();
-            foreach (object obj in this.listView1.SelectedItems)
+            foreach (object obj in listView1.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 list.Add(listViewItem.Tag);
@@ -723,7 +705,7 @@ namespace S4LResourceTool
             {
                 _currentPath = _currentPath.Substring(1);
             }
-            this.PopulateView();
+            PopulateView();
         }
 
         private void searchBox_Enter(object sender, EventArgs e)
@@ -753,7 +735,6 @@ namespace S4LResourceTool
             {
                 if (Directory.Exists(fullPath))
                 {
-                    // it's a directory: recurse into it
                     var dirName = Path.GetFileName(fullPath);
                     var newPrefix = prefix + dirName + "/";
                     var childEntries = Directory.GetFileSystemEntries(fullPath);
@@ -761,11 +742,9 @@ namespace S4LResourceTool
                 }
                 else
                 {
-                    // it's a file
                     var fileName = Path.GetFileName(fullPath);
                     var key = prefix + fileName;
 
-                    // see if there's already an entry in the zip
                     var existing = _zipFile.Values
                                            .FirstOrDefault(x => x.FullName == key);
 
@@ -783,10 +762,8 @@ namespace S4LResourceTool
                     }
                     else
                     {
-                        // new entry
                         var entry = _zipFile.CreateEntry(key,
                                                          File.ReadAllBytes(fullPath));
-                        // if this was one of your “extra folders”, forget it now
                         var folder = entry.GetFolderName(true);
                         if (_extraFolders.Contains(folder))
                             _extraFolders.Remove(folder);
@@ -816,6 +793,60 @@ namespace S4LResourceTool
                 return;
             }
             e.Effect = DragDropEffects.Copy;
+        }
+
+        private void bt_FindUnsed_Click(object sender, EventArgs e)
+        {
+            // 1) Where on disk the archive stores its files:
+            string resourceDir = _zipFile.ResourcePath;
+            if (!Directory.Exists(resourceDir))
+            {
+                MessageBox.Show($"Resource folder not found:\n{resourceDir}",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // 2) Build a set of all checksums in the open archive
+            var usedChecksums = new HashSet<string>(
+                _zipFile.Values
+                        .Select(ent => ent.Checksum.ToString("x")),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            // 3) Find every file in the folder whose name isn't in that set
+            var onDiskFiles = Directory.GetFiles(resourceDir);
+            var unused = onDiskFiles
+                .Where(path => !usedChecksums.Contains(Path.GetFileName(path)))
+                .ToList();
+
+            int count = unused.Count;
+            if (count == 0)
+            {
+                MessageBox.Show("No unused resources found.",
+                                "Find Unused", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 4) Prompt the user
+            var result = MessageBox.Show(
+                $"Found {count} unused resource file{(count > 1 ? "s" : "")}.\n" +
+                "Do you want to permanently delete them from disk?",
+                "Delete Unused Resources",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
+            if (result != DialogResult.Yes) return;
+
+            // 5) Delete and report back
+            foreach (var file in unused)
+                File.Delete(file);
+
+            MessageBox.Show(
+                $"Deleted {count} file{(count > 1 ? "s" : "")}.",
+                "Done",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
         }
     }
 }
