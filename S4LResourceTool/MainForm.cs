@@ -797,23 +797,21 @@ namespace S4LResourceTool
 
         private void bt_FindUnsed_Click(object sender, EventArgs e)
         {
-            // 1) Where on disk the archive stores its files:
             string resourceDir = _zipFile.ResourcePath;
             if (!Directory.Exists(resourceDir))
             {
-                MessageBox.Show($"Resource folder not found:\n{resourceDir}",
-                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    $"Resource folder not found:\n{resourceDir}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return;
             }
 
-            // 2) Build a set of all checksums in the open archive
             var usedChecksums = new HashSet<string>(
-                _zipFile.Values
-                        .Select(ent => ent.Checksum.ToString("x")),
-                StringComparer.OrdinalIgnoreCase
-            );
+                _zipFile.Values.Select(ent => ent.Checksum.ToString("x")),
+                StringComparer.OrdinalIgnoreCase);
 
-            // 3) Find every file in the folder whose name isn't in that set
             var onDiskFiles = Directory.GetFiles(resourceDir);
             var unused = onDiskFiles
                 .Where(path => !usedChecksums.Contains(Path.GetFileName(path)))
@@ -822,31 +820,49 @@ namespace S4LResourceTool
             int count = unused.Count;
             if (count == 0)
             {
-                MessageBox.Show("No unused resources found.",
-                                "Find Unused", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "No unused resources found.",
+                    "Find Unused",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
-            // 4) Prompt the user
+            long totalBytes = unused.Sum(path => new FileInfo(path).Length);
+            string sizeText = FormatSize(totalBytes);
+
             var result = MessageBox.Show(
-                $"Found {count} unused resource file{(count > 1 ? "s" : "")}.\n" +
+                $"Found {count} unused resource file{(count > 1 ? "s" : "")} " +
+                $"totaling {sizeText}.\n\n" +
                 "Do you want to permanently delete them from disk?",
                 "Delete Unused Resources",
                 MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning
-            );
+                MessageBoxIcon.Warning);
             if (result != DialogResult.Yes) return;
 
-            // 5) Delete and report back
             foreach (var file in unused)
                 File.Delete(file);
 
             MessageBox.Show(
-                $"Deleted {count} file{(count > 1 ? "s" : "")}.",
+                $"Deleted {count} file{(count > 1 ? "s" : "")}, " +
+                $"freeing up {sizeText}.",
                 "Done",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+                MessageBoxIcon.Information);
         }
+
+        private static string FormatSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < suffixes.Length - 1)
+            {
+                order++;
+                len /= 1024;
+            }
+            return $"{len:0.##} {suffixes[order]}";
+        }
+
     }
 }

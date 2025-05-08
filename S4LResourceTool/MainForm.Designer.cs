@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ColumnHeader columnHeader1;
-            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("_resources");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("_resources");
             this.button1 = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -41,7 +41,7 @@
             this.textDisplay = new System.Windows.Forms.TextBox();
             this.tree = new System.Windows.Forms.TreeView();
             this.bt_Save = new System.Windows.Forms.Button();
-            this.bt_FindUnsed = new System.Windows.Forms.Button();
+            this.bt_FindUnused = new System.Windows.Forms.Button();
             columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
@@ -142,10 +142,10 @@
             this.tree.ItemHeight = 28;
             this.tree.Location = new System.Drawing.Point(12, 3);
             this.tree.Name = "tree";
-            treeNode1.Name = "_resources";
-            treeNode1.Text = "_resources";
+            treeNode2.Name = "_resources";
+            treeNode2.Text = "_resources";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode1});
+            treeNode2});
             this.tree.ShowLines = false;
             this.tree.Size = new System.Drawing.Size(229, 409);
             this.tree.TabIndex = 6;
@@ -161,22 +161,22 @@
             this.bt_Save.UseVisualStyleBackColor = true;
             this.bt_Save.Click += new System.EventHandler(this.bt_Save_Click);
             // 
-            // bt_FindUnsed
+            // bt_FindUnused
             // 
-            this.bt_FindUnsed.Location = new System.Drawing.Point(434, 418);
-            this.bt_FindUnsed.Name = "bt_FindUnsed";
-            this.bt_FindUnsed.Size = new System.Drawing.Size(148, 23);
-            this.bt_FindUnsed.TabIndex = 9;
-            this.bt_FindUnsed.Text = "Find unused Resources";
-            this.bt_FindUnsed.UseVisualStyleBackColor = true;
-            this.bt_FindUnsed.Click += new System.EventHandler(this.bt_FindUnsed_Click);
+            this.bt_FindUnused.Location = new System.Drawing.Point(434, 418);
+            this.bt_FindUnused.Name = "bt_FindUnused";
+            this.bt_FindUnused.Size = new System.Drawing.Size(148, 23);
+            this.bt_FindUnused.TabIndex = 9;
+            this.bt_FindUnused.Text = "Find unused Resources";
+            this.bt_FindUnused.UseVisualStyleBackColor = true;
+            this.bt_FindUnused.Click += new System.EventHandler(this.bt_FindUnsed_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1188, 450);
-            this.Controls.Add(this.bt_FindUnsed);
+            this.Controls.Add(this.bt_FindUnused);
             this.Controls.Add(this.bt_Save);
             this.Controls.Add(this.tree);
             this.Controls.Add(this.textDisplay);
@@ -204,7 +204,7 @@
         private System.Windows.Forms.TreeView tree;
         private System.Windows.Forms.Button bt_Save;
         private System.Windows.Forms.ContextMenuStrip listViewItemCtx;
-        private System.Windows.Forms.Button bt_FindUnsed;
+        private System.Windows.Forms.Button bt_FindUnused;
     }
 }
 
