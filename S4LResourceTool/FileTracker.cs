@@ -15,19 +15,19 @@ namespace S4LResourceTool
 
         public FileTracker()
         {
-            this._fileWatcher = new Dictionary<string, TrackData>();
+            _fileWatcher = new Dictionary<string, TrackData>();
             Task.Run(delegate ()
             {
                 for (; ; )
                 {
-                    foreach (KeyValuePair<string, TrackData> e in this._fileWatcher)
+                    foreach (KeyValuePair<string, TrackData> e in _fileWatcher)
                     {
                         string key = e.Key;
                         TrackData value = e.Value;
                         DateTime lastWriteTime = File.GetLastWriteTime(key);
                         if (!(value.LastModified == lastWriteTime))
                         {
-                            this.OnChange(this, e);
+                            OnChange(this, e);
                             value.LastModified = lastWriteTime;
                         }
                     }
@@ -38,19 +38,18 @@ namespace S4LResourceTool
 
         public void Add(string path, TrackData data)
         {
-            this._fileWatcher.Add(path, data);
+            _fileWatcher.Add(path, data);
         }
 
         public IEnumerator<KeyValuePair<string, TrackData>> GetEnumerator()
         {
-            return this._fileWatcher.GetEnumerator();
+            return _fileWatcher.GetEnumerator();
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this._fileWatcher.GetEnumerator();
+            return _fileWatcher.GetEnumerator();
         }
 
-        // Token: 0x04000018 RID: 24
         private readonly Dictionary<string, TrackData> _fileWatcher;
     }
 }
