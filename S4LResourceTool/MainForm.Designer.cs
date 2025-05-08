@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ColumnHeader columnHeader1;
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("_resources");
+            System.Windows.Forms.TreeNode treeNode12 = new System.Windows.Forms.TreeNode("_resources");
             this.button1 = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -55,13 +55,14 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(129, 23);
             this.button1.TabIndex = 0;
-            this.button1.Text = "Load resource.s4hd";
+            this.button1.Text = "Change client path";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // listView1
             // 
             this.listView1.AllowColumnReorder = true;
+            this.listView1.AllowDrop = true;
             this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             columnHeader1,
@@ -78,6 +79,8 @@
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
+            this.listView1.DragDrop += new System.Windows.Forms.DragEventHandler(this.listView1_DragDrop);
+            this.listView1.DragEnter += new System.Windows.Forms.DragEventHandler(this.listView1_DragEnter);
             this.listView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseClick);
             this.listView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
             // 
@@ -108,6 +111,9 @@
             this.searchBox.Size = new System.Drawing.Size(133, 20);
             this.searchBox.TabIndex = 4;
             this.searchBox.Text = "Search for an item...";
+            this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
+            this.searchBox.Enter += new System.EventHandler(this.searchBox_Enter);
+            this.searchBox.Leave += new System.EventHandler(this.searchBox_Leave);
             // 
             // textDisplay
             // 
@@ -134,10 +140,10 @@
             this.tree.ItemHeight = 28;
             this.tree.Location = new System.Drawing.Point(12, 3);
             this.tree.Name = "tree";
-            treeNode3.Name = "_resources";
-            treeNode3.Text = "_resources";
+            treeNode12.Name = "_resources";
+            treeNode12.Text = "_resources";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode3});
+            treeNode12});
             this.tree.ShowLines = false;
             this.tree.Size = new System.Drawing.Size(229, 409);
             this.tree.TabIndex = 6;

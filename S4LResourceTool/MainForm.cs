@@ -12,9 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NeoNetsphere.Resource;
-using Org.BouncyCastle.Crypto.Tls;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using S4LResourceTool.Properties;
 
 namespace S4LResourceTool
 {
@@ -44,13 +42,29 @@ namespace S4LResourceTool
                 tree.ImageList.Images.Add("folder", folderIcon.ToBitmap());
                 listView1.SmallImageList.Images.Add("folder", folderIcon.ToBitmap());
             }
+            if (Settings.Default.ClientPath.Length < 5)
+            {
+                string output = "";
+                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+                {
+                    Description = "Select your S4 League directory."
+                })
+                {
+                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+                    {
+                        output = folderBrowserDialog.SelectedPath + "/";
+                        Settings.Default.ClientPath = output;
+                        Settings.Default.Save();
+                    }
+                }
+            }
             Open();
             tree.AfterSelect += new TreeViewEventHandler(OnFolderChange);
         }
 
         private void Open()
         {
-            _zipFile = S4Zip.OpenZip("E:\\Games\\S4 Legacy\\resource.s4hd");
+            _zipFile = S4Zip.OpenZip(Settings.Default.ClientPath + "resource.s4hd");
             if (_zipFile == null)
             {
                 MessageBox.Show("Failed to open S4Zip");
@@ -148,8 +162,20 @@ namespace S4LResourceTool
 
         private void button1_Click(object sender, EventArgs e)
         {
-            UpdateTree();
-            PopulateView();
+            string output = "";
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+            {
+                Description = "Select your S4 League directory."
+            })
+            {
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+                {
+                    output = folderBrowserDialog.SelectedPath + "/";
+                    Settings.Default.ClientPath = output;
+                    Settings.Default.Save();
+                }
+            }
+            Open();
         }
 
         private void UpdateTree()
@@ -698,6 +724,98 @@ namespace S4LResourceTool
                 _currentPath = _currentPath.Substring(1);
             }
             this.PopulateView();
+        }
+
+        private void searchBox_Enter(object sender, EventArgs e)
+        {
+            searchBox.Text = "";
+            searchBox.ForeColor = Color.Black;
+        }
+
+        private void searchBox_Leave(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(searchBox.Text))
+            {
+                return;
+            }
+            searchBox.Text = "Search for an item...";
+            searchBox.ForeColor = Color.Silver;
+        }
+
+        private void searchBox_TextChanged(object sender, EventArgs e)
+        {
+            PopulateView();
+        }
+
+        private void IterateDroppedFiles(string prefix, IEnumerable<string> paths)
+        {
+            foreach (var fullPath in paths)
+            {
+                if (Directory.Exists(fullPath))
+                {
+                    // it's a directory: recurse into it
+                    var dirName = Path.GetFileName(fullPath);
+                    var newPrefix = prefix + dirName + "/";
+                    var childEntries = Directory.GetFileSystemEntries(fullPath);
+                    IterateDroppedFiles(newPrefix, childEntries);
+                }
+                else
+                {
+                    // it's a file
+                    var fileName = Path.GetFileName(fullPath);
+                    var key = prefix + fileName;
+
+                    // see if there's already an entry in the zip
+                    var existing = _zipFile.Values
+                                           .FirstOrDefault(x => x.FullName == key);
+
+                    if (existing != null)
+                    {
+                        // replace?
+                        if (!_confirmReplacements ||
+                            MessageBox.Show(
+                                $"Are you sure you want to replace {key}?",
+                                "Replace data",
+                                MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        {
+                            existing.SetData(File.ReadAllBytes(fullPath));
+                        }
+                    }
+                    else
+                    {
+                        // new entry
+                        var entry = _zipFile.CreateEntry(key,
+                                                         File.ReadAllBytes(fullPath));
+                        // if this was one of your “extra folders”, forget it now
+                        var folder = entry.GetFolderName(true);
+                        if (_extraFolders.Contains(folder))
+                            _extraFolders.Remove(folder);
+                    }
+                }
+            }
+        }
+
+        private void listView1_DragDrop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            var dropped = ((string[])e.Data.GetData(DataFormats.FileDrop))
+                              .ToList();
+            // kick off recursion:
+            IterateDroppedFiles(
+                prefix: (_currentPath.Length == 0) ? "" : (_currentPath + "/"),
+                paths: dropped);
+
+            PopulateView();
+        }
+
+        private void listView1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                return;
+            }
+            e.Effect = DragDropEffects.Copy;
         }
     }
 }
