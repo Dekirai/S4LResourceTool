@@ -822,7 +822,7 @@ namespace S4LResourceTool
             {
                 MessageBox.Show(
                     "No unused resources found.",
-                    "Find Unused",
+                    "Find unused resources",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;

@@ -30,7 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ColumnHeader columnHeader1;
-            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("_resources");
+            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("_resources");
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.button1 = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -142,10 +143,10 @@
             this.tree.ItemHeight = 28;
             this.tree.Location = new System.Drawing.Point(12, 3);
             this.tree.Name = "tree";
-            treeNode2.Name = "_resources";
-            treeNode2.Text = "_resources";
+            treeNode3.Name = "_resources";
+            treeNode3.Text = "_resources";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode2});
+            treeNode3});
             this.tree.ShowLines = false;
             this.tree.Size = new System.Drawing.Size(229, 409);
             this.tree.TabIndex = 6;
@@ -184,6 +185,7 @@
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.button1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "Resource Tool by Dekirai";
