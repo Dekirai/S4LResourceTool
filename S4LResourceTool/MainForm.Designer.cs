@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ColumnHeader columnHeader1;
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("_resources");
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("_resources");
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.button1 = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
@@ -43,7 +43,11 @@
             this.tree = new System.Windows.Forms.TreeView();
             this.bt_Save = new System.Windows.Forms.Button();
             this.bt_FindUnused = new System.Windows.Forms.Button();
+            this.imageDisplay = new System.Windows.Forms.PictureBox();
+            this.progressBarSave = new System.Windows.Forms.ProgressBar();
+            this.label1 = new System.Windows.Forms.Label();
             columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            ((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).BeginInit();
             this.SuspendLayout();
             // 
             // columnHeader1
@@ -129,7 +133,7 @@
             this.textDisplay.Name = "textDisplay";
             this.textDisplay.ReadOnly = true;
             this.textDisplay.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textDisplay.Size = new System.Drawing.Size(449, 435);
+            this.textDisplay.Size = new System.Drawing.Size(449, 409);
             this.textDisplay.TabIndex = 5;
             this.textDisplay.Visible = false;
             this.textDisplay.WordWrap = false;
@@ -143,10 +147,10 @@
             this.tree.ItemHeight = 28;
             this.tree.Location = new System.Drawing.Point(12, 3);
             this.tree.Name = "tree";
-            treeNode3.Name = "_resources";
-            treeNode3.Text = "_resources";
+            treeNode1.Name = "_resources";
+            treeNode1.Text = "_resources";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode3});
+            treeNode1});
             this.tree.ShowLines = false;
             this.tree.Size = new System.Drawing.Size(229, 409);
             this.tree.TabIndex = 6;
@@ -172,11 +176,41 @@
             this.bt_FindUnused.UseVisualStyleBackColor = true;
             this.bt_FindUnused.Click += new System.EventHandler(this.bt_FindUnsed_Click);
             // 
+            // imageDisplay
+            // 
+            this.imageDisplay.Location = new System.Drawing.Point(727, 3);
+            this.imageDisplay.Name = "imageDisplay";
+            this.imageDisplay.Size = new System.Drawing.Size(449, 409);
+            this.imageDisplay.TabIndex = 10;
+            this.imageDisplay.TabStop = false;
+            this.imageDisplay.Visible = false;
+            // 
+            // progressBarSave
+            // 
+            this.progressBarSave.Location = new System.Drawing.Point(797, 418);
+            this.progressBarSave.Name = "progressBarSave";
+            this.progressBarSave.Size = new System.Drawing.Size(379, 23);
+            this.progressBarSave.TabIndex = 11;
+            this.progressBarSave.Visible = false;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(727, 423);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(64, 13);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "Saving files:";
+            this.label1.Visible = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1188, 450);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.progressBarSave);
+            this.Controls.Add(this.imageDisplay);
             this.Controls.Add(this.bt_FindUnused);
             this.Controls.Add(this.bt_Save);
             this.Controls.Add(this.tree);
@@ -189,6 +223,7 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "Resource Tool by Dekirai";
+            ((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -207,6 +242,9 @@
         private System.Windows.Forms.Button bt_Save;
         private System.Windows.Forms.ContextMenuStrip listViewItemCtx;
         private System.Windows.Forms.Button bt_FindUnused;
+        private System.Windows.Forms.PictureBox imageDisplay;
+        private System.Windows.Forms.ProgressBar progressBarSave;
+        private System.Windows.Forms.Label label1;
     }
 }
 

@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using NeoNetsphere.Resource;
 using S4LResourceTool.Properties;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Drawing.Imaging;
 
 namespace S4LResourceTool
 {
@@ -33,6 +36,7 @@ namespace S4LResourceTool
         public MainForm()
         {
             InitializeComponent();
+            //ApplyDarkMode();
             MainForm.SetWindowTheme(tree.Handle, "explorer", null);
             MainForm.SetWindowTheme(listView1.Handle, "explorer", null);
             tree.ImageList = new ImageList();
@@ -129,7 +133,7 @@ namespace S4LResourceTool
                         ListViewItem listViewItem = (ListViewItem)obj;
                         if (!(listViewItem.SubItems[0].Text != entry.Name))
                         {
-                            listViewItem.ForeColor = Color.Red;
+                            listViewItem.ForeColor = System.Drawing.Color.Red;
                         }
                     }
                     listView1_SelectedIndexChanged(null, null);
@@ -429,7 +433,34 @@ namespace S4LResourceTool
                             string @string = Encoding.UTF8.GetString(s4ZipEntry.GetData());
                             textDisplay.Enabled = true;
                             textDisplay.Visible = true;
+                            imageDisplay.Enabled = false;
+                            imageDisplay.Visible = false;
                             textDisplay.Text = @string;
+                            break;
+                        }
+                    case ExtensionType.Image:
+                        {
+                            // hide text box
+                            textDisplay.Visible = false;
+
+                            // dispose old image
+                            imageDisplay.Image?.Dispose();
+                            imageDisplay.Image = null;
+
+                            byte[] imgData = s4ZipEntry.GetData();
+                            using (var ms = new MemoryStream(imgData))
+                            {
+                                string ext = Path.GetExtension(s4ZipEntry.Name).ToLowerInvariant();
+                                if (ext == ".tga")
+                                    imageDisplay.Image = TgaLoader.LoadTga(ms);
+                                else if (ext == ".dds")
+                                        imageDisplay.Image = LoadViaWic(ms);
+                                else
+                                    imageDisplay.Image = Image.FromStream(ms);
+                            }
+
+                            imageDisplay.SizeMode = PictureBoxSizeMode.Zoom;
+                            imageDisplay.Visible = true;
                             break;
                         }
                     default:
@@ -577,76 +608,96 @@ namespace S4LResourceTool
 
         private void OnCtxSave(object sender, EventArgs e)
         {
-            string output = "";
-            if (listView1.SelectedItems.Count > 1 || listView1.SelectedItems[0].Tag is string)
+            // 1) If exactly one file entry is selected → normal SaveFileDialog
+            if (listView1.SelectedItems.Count == 1 && listView1.SelectedItems[0].Tag is S4ZipEntry singleEntry)
             {
-                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+                using (var dlg = new SaveFileDialog())
                 {
-                    Description = "Select your S4 League directory."
-                })
-                {
-                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+                    dlg.FileName = singleEntry.Name;
+                    var ext = Path.GetExtension(singleEntry.Name);
+                    if (!string.IsNullOrEmpty(ext))
+                        dlg.Filter = ext.Substring(1).ToUpper() + " Files|*" + ext;
+
+                    if (dlg.ShowDialog() == DialogResult.OK &&
+                        !string.IsNullOrWhiteSpace(dlg.FileName))
                     {
-                        output = folderBrowserDialog.SelectedPath + "/";
-                        goto IL_155;
+                        File.WriteAllBytes(dlg.FileName, singleEntry.GetData());
                     }
-                    return;
                 }
+                return;
             }
-            S4ZipEntry s4ZipEntry = listView1.SelectedItems[0].Tag as S4ZipEntry;
-            if (s4ZipEntry != null)
+
+            // 2) Multi-select (files and/or folders) → pick an output folder
+            string outputDir;
+            using (var dlg = new FolderBrowserDialog { Description = "Select a directory to save the files." })
             {
-                using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-                {
-                    saveFileDialog.FileName = s4ZipEntry.Name;
-                    string extension = Path.GetExtension(s4ZipEntry.Name);
-                    if (extension != null)
-                    {
-                        saveFileDialog.Filter = extension.Substring(1).ToUpper() + " Files|*" + extension;
-                    }
-                    if (saveFileDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(saveFileDialog.FileName))
-                    {
-                        output = saveFileDialog.FileName;
-                        File.WriteAllBytes(output, s4ZipEntry.GetData());
-                        return;
-                    }
+                if (dlg.ShowDialog() != DialogResult.OK ||
+                    string.IsNullOrWhiteSpace(dlg.SelectedPath))
                     return;
-                }
+
+                outputDir = dlg.SelectedPath;
             }
-        IL_155:
-            List<object> list = new List<object>();
-            foreach (object obj in listView1.SelectedItems)
+
+            // 3) Build the tag list just like your original did
+            var tags = listView1.SelectedItems
+                                 .Cast<ListViewItem>()
+                                 .Select(item => item.Tag)  // string = folder, or S4ZipEntry
+                                 .ToList<object>();
+
+            // 4) Expand via your FileWalker
+            var walker = new FileWalker(_zipFile, tags, _currentPath);
+            var allFiles = walker.GenerateList(); // List<FileWalker.FileData>
+            if (allFiles.Count == 0) return;
+
+            // 5) Init progress bar (on UI thread)
+            progressBarSave.Invoke((Action)(() =>
             {
-                ListViewItem listViewItem = (ListViewItem)obj;
-                list.Add(listViewItem.Tag);
-            }
-            FileWalker fileWalker = new FileWalker(_zipFile, list, _currentPath);
-            List<FileWalker.FileData> data = fileWalker.GenerateList();
-            Task.Run(delegate ()
+                progressBarSave.Minimum = 0;
+                progressBarSave.Maximum = allFiles.Count;
+                progressBarSave.Value = 0;
+                progressBarSave.Visible = true;
+                label1.Visible = true;
+            }));
+
+            // 6) Background save loop
+            Task.Run(() =>
             {
-                int i;
-                int j;
-                for (i = 0; i < data.Count; i = j)
+                for (int i = 0; i < allFiles.Count; i++)
                 {
+                    var fileData = allFiles[i];
                     try
                     {
-                        FileWalker.FileData item = data[i];
-                        string path = output + item.Path;
-                        string folderName = path.GetFolderName(true);
-                        if (!Directory.Exists(folderName))
-                        {
-                            Directory.CreateDirectory(folderName);
-                        }
-                        if (File.Exists(item.Entry.FileName))
-                        {
-                            File.WriteAllBytes(path, item.Entry.GetData());
-                        }
+                        // Normalize the relative path (turn "/" into system "\" separators)
+                        string relative = fileData.Path.Replace('/', Path.DirectorySeparatorChar);
+                        // Combine with the user-picked root folder
+                        string outPath = Path.Combine(outputDir, relative);
+
+                        // Ensure the directory exists
+                        string folder = Path.GetDirectoryName(outPath);
+                        if (!Directory.Exists(folder))
+                            Directory.CreateDirectory(folder);
+
+                        // Write the file
+                        File.WriteAllBytes(outPath, fileData.Entry.GetData());
                     }
                     catch
                     {
+                        // you might log errors here if you like
                     }
-                    j = i + 1;
+
+                    // 7) Update progress on the UI thread
+                    progressBarSave.Invoke((Action)(() =>
+                    {
+                        progressBarSave.Value = i + 1;
+                    }));
                 }
+
+                // 8) Hide progress bar when all done
+                progressBarSave.Invoke((Action)(() =>
+                {
+                    progressBarSave.Visible = false;
+                    label1.Visible = false;
+                }));
             });
         }
 
@@ -711,7 +762,7 @@ namespace S4LResourceTool
         private void searchBox_Enter(object sender, EventArgs e)
         {
             searchBox.Text = "";
-            searchBox.ForeColor = Color.Black;
+            searchBox.ForeColor = System.Drawing.Color.Black;
         }
 
         private void searchBox_Leave(object sender, EventArgs e)
@@ -721,7 +772,7 @@ namespace S4LResourceTool
                 return;
             }
             searchBox.Text = "Search for an item...";
-            searchBox.ForeColor = Color.Silver;
+            searchBox.ForeColor = System.Drawing.Color.Silver;
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
@@ -862,6 +913,92 @@ namespace S4LResourceTool
                 len /= 1024;
             }
             return $"{len:0.##} {suffixes[order]}";
+        }
+
+        private void ApplyDarkMode()
+        {
+            this.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            this.ForeColor = System.Drawing.Color.White;
+
+            foreach (Control ctrl in this.Controls)
+            {
+                ApplyDarkStyle(ctrl);
+            }
+
+            listView1.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            listView1.ForeColor = System.Drawing.Color.White;
+            listView1.BorderStyle = BorderStyle.FixedSingle;
+
+            tree.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            tree.ForeColor = System.Drawing.Color.White;
+
+            textDisplay.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            textDisplay.ForeColor = System.Drawing.Color.White;
+
+            searchBox.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            searchBox.ForeColor = System.Drawing.Color.White;
+        }
+
+        private void ApplyDarkStyle(Control ctrl)
+        {
+            if (ctrl is Button btn)
+            {
+                btn.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
+                btn.ForeColor = System.Drawing.Color.White;
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.FlatAppearance.BorderColor = System.Drawing.Color.Gray;
+            }
+
+            if (ctrl.HasChildren)
+            {
+                foreach (Control child in ctrl.Controls)
+                {
+                    ApplyDarkStyle(child);
+                }
+            }
+        }
+
+        public static Bitmap LoadViaWic(Stream s)
+        {
+            // rewind stream if needed
+            if (s.CanSeek)
+                s.Seek(0, SeekOrigin.Begin);
+
+            // Create a WIC decoder over the stream
+            var decoder = BitmapDecoder.Create(
+                s,
+                BitmapCreateOptions.PreservePixelFormat,
+                BitmapCacheOption.OnLoad
+            );
+
+            // Grab the first frame
+            BitmapFrame frame = decoder.Frames[0];
+
+            // Convert to premultiplied BGRA (Pbgra32) so GDI+ Format32bppPArgb displays alpha correctly
+            var converted = new FormatConvertedBitmap(
+                frame,
+                PixelFormats.Pbgra32,    // ← premultiplied BGRA
+                null,
+                0
+            );
+
+            int w = converted.PixelWidth;
+            int h = converted.PixelHeight;
+            int stride = w * (converted.Format.BitsPerPixel / 8);
+            byte[] pixels = new byte[h * stride];
+            converted.CopyPixels(pixels, stride, 0);
+
+            // Copy into a GDI+ bitmap with premultiplied alpha
+            var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+            var data = bmp.LockBits(
+                new Rectangle(0, 0, w, h),
+                ImageLockMode.WriteOnly,
+                bmp.PixelFormat
+            );
+            Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
+            bmp.UnlockBits(data);
+
+            return bmp;
         }
 
     }
