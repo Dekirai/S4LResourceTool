@@ -32,13 +32,13 @@
             System.Windows.Forms.ColumnHeader columnHeader1;
             System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("_resources");
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.button1 = new System.Windows.Forms.Button();
-            this.listView1 = new System.Windows.Forms.ListView();
+            this.bt_ChangePath = new System.Windows.Forms.Button();
+            this.resourceList = new System.Windows.Forms.ListView();
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listViewItemCtx = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.searchBox = new System.Windows.Forms.TextBox();
+            this.tb_searchResource = new System.Windows.Forms.TextBox();
             this.textDisplay = new System.Windows.Forms.TextBox();
             this.tree = new System.Windows.Forms.TreeView();
             this.bt_Save = new System.Windows.Forms.Button();
@@ -55,40 +55,40 @@
             columnHeader1.Text = "Name";
             columnHeader1.Width = 160;
             // 
-            // button1
+            // bt_ChangePath
             // 
-            this.button1.Location = new System.Drawing.Point(12, 418);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(129, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Change client path";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.bt_ChangePath.Location = new System.Drawing.Point(12, 418);
+            this.bt_ChangePath.Name = "bt_ChangePath";
+            this.bt_ChangePath.Size = new System.Drawing.Size(191, 23);
+            this.bt_ChangePath.TabIndex = 0;
+            this.bt_ChangePath.Text = "Change client path";
+            this.bt_ChangePath.UseVisualStyleBackColor = true;
+            this.bt_ChangePath.Click += new System.EventHandler(this.button1_Click);
             // 
-            // listView1
+            // resourceList
             // 
-            this.listView1.AllowColumnReorder = true;
-            this.listView1.AllowDrop = true;
-            this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.resourceList.AllowColumnReorder = true;
+            this.resourceList.AllowDrop = true;
+            this.resourceList.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.resourceList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             columnHeader1,
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4});
-            this.listView1.ContextMenuStrip = this.listViewItemCtx;
-            this.listView1.FullRowSelect = true;
-            this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(247, 3);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(474, 409);
-            this.listView1.TabIndex = 3;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.View = System.Windows.Forms.View.Details;
-            this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
-            this.listView1.DragDrop += new System.Windows.Forms.DragEventHandler(this.listView1_DragDrop);
-            this.listView1.DragEnter += new System.Windows.Forms.DragEventHandler(this.listView1_DragEnter);
-            this.listView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseClick);
-            this.listView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
+            this.resourceList.ContextMenuStrip = this.listViewItemCtx;
+            this.resourceList.FullRowSelect = true;
+            this.resourceList.HideSelection = false;
+            this.resourceList.Location = new System.Drawing.Point(209, 3);
+            this.resourceList.Name = "resourceList";
+            this.resourceList.Size = new System.Drawing.Size(512, 409);
+            this.resourceList.TabIndex = 3;
+            this.resourceList.UseCompatibleStateImageBehavior = false;
+            this.resourceList.View = System.Windows.Forms.View.Details;
+            this.resourceList.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
+            this.resourceList.DragDrop += new System.Windows.Forms.DragEventHandler(this.listView1_DragDrop);
+            this.resourceList.DragEnter += new System.Windows.Forms.DragEventHandler(this.listView1_DragEnter);
+            this.resourceList.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseClick);
+            this.resourceList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
             // 
             // columnHeader2
             // 
@@ -110,17 +110,17 @@
             this.listViewItemCtx.Name = "listViewItemCtx";
             this.listViewItemCtx.Size = new System.Drawing.Size(61, 4);
             // 
-            // searchBox
+            // tb_searchResource
             // 
-            this.searchBox.ForeColor = System.Drawing.Color.Silver;
-            this.searchBox.Location = new System.Drawing.Point(588, 418);
-            this.searchBox.Name = "searchBox";
-            this.searchBox.Size = new System.Drawing.Size(133, 20);
-            this.searchBox.TabIndex = 4;
-            this.searchBox.Text = "Search for an item...";
-            this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
-            this.searchBox.Enter += new System.EventHandler(this.searchBox_Enter);
-            this.searchBox.Leave += new System.EventHandler(this.searchBox_Leave);
+            this.tb_searchResource.ForeColor = System.Drawing.Color.Silver;
+            this.tb_searchResource.Location = new System.Drawing.Point(588, 418);
+            this.tb_searchResource.Name = "tb_searchResource";
+            this.tb_searchResource.Size = new System.Drawing.Size(133, 20);
+            this.tb_searchResource.TabIndex = 4;
+            this.tb_searchResource.Text = "Search resource..";
+            this.tb_searchResource.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
+            this.tb_searchResource.Enter += new System.EventHandler(this.searchBox_Enter);
+            this.tb_searchResource.Leave += new System.EventHandler(this.searchBox_Leave);
             // 
             // textDisplay
             // 
@@ -152,13 +152,13 @@
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode1});
             this.tree.ShowLines = false;
-            this.tree.Size = new System.Drawing.Size(229, 409);
+            this.tree.Size = new System.Drawing.Size(191, 409);
             this.tree.TabIndex = 6;
             this.tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tree_AfterSelect);
             // 
             // bt_Save
             // 
-            this.bt_Save.Location = new System.Drawing.Point(247, 418);
+            this.bt_Save.Location = new System.Drawing.Point(209, 418);
             this.bt_Save.Name = "bt_Save";
             this.bt_Save.Size = new System.Drawing.Size(148, 23);
             this.bt_Save.TabIndex = 8;
@@ -168,7 +168,7 @@
             // 
             // bt_FindUnused
             // 
-            this.bt_FindUnused.Location = new System.Drawing.Point(434, 418);
+            this.bt_FindUnused.Location = new System.Drawing.Point(363, 418);
             this.bt_FindUnused.Name = "bt_FindUnused";
             this.bt_FindUnused.Size = new System.Drawing.Size(148, 23);
             this.bt_FindUnused.TabIndex = 9;
@@ -215,9 +215,9 @@
             this.Controls.Add(this.bt_Save);
             this.Controls.Add(this.tree);
             this.Controls.Add(this.textDisplay);
-            this.Controls.Add(this.searchBox);
-            this.Controls.Add(this.listView1);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.tb_searchResource);
+            this.Controls.Add(this.resourceList);
+            this.Controls.Add(this.bt_ChangePath);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -231,9 +231,9 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.ListView listView1;
-        private System.Windows.Forms.TextBox searchBox;
+        private System.Windows.Forms.Button bt_ChangePath;
+        private System.Windows.Forms.ListView resourceList;
+        private System.Windows.Forms.TextBox tb_searchResource;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.TextBox textDisplay;
         private System.Windows.Forms.ColumnHeader columnHeader3;

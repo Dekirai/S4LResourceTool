@@ -90,7 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteFormat.cs" />
-    <Compile Include="DDSDecoder.cs" />
+    <Compile Include="PfimImageLoader.cs" />
     <Compile Include="ExtensionType.cs" />
     <Compile Include="FileTracker.cs" />
     <Compile Include="FileWalker.cs" />

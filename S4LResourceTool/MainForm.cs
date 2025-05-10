@@ -36,15 +36,14 @@ namespace S4LResourceTool
         public MainForm()
         {
             InitializeComponent();
-            //ApplyDarkMode();
             MainForm.SetWindowTheme(tree.Handle, "explorer", null);
-            MainForm.SetWindowTheme(listView1.Handle, "explorer", null);
+            MainForm.SetWindowTheme(resourceList.Handle, "explorer", null);
             tree.ImageList = new ImageList();
-            listView1.SmallImageList = new ImageList();
+            resourceList.SmallImageList = new ImageList();
             using (Icon folderIcon = NativeMethods.GetFolderIcon(true))
             {
                 tree.ImageList.Images.Add("folder", folderIcon.ToBitmap());
-                listView1.SmallImageList.Images.Add("folder", folderIcon.ToBitmap());
+                resourceList.SmallImageList.Images.Add("folder", folderIcon.ToBitmap());
             }
             if (Settings.Default.ClientPath.Length < 5)
             {
@@ -128,7 +127,7 @@ namespace S4LResourceTool
                         return;
                     }
                     entry.SetData(File.ReadAllBytes(key));
-                    foreach (object obj in listView1.Items)
+                    foreach (object obj in resourceList.Items)
                     {
                         ListViewItem listViewItem = (ListViewItem)obj;
                         if (!(listViewItem.SubItems[0].Text != entry.Name))
@@ -153,11 +152,11 @@ namespace S4LResourceTool
                 {
                     _extensions.Add(extension, ExtensionType.Binary);
                 }
-                if (!listView1.SmallImageList.Images.ContainsKey(extension))
+                if (!resourceList.SmallImageList.Images.ContainsKey(extension))
                 {
                     using (Icon fileIcon = NativeMethods.GetFileIcon(extension, true))
                     {
-                        listView1.SmallImageList.Images.Add(extension, fileIcon.ToBitmap());
+                        resourceList.SmallImageList.Images.Add(extension, fileIcon.ToBitmap());
                     }
                 }
             }
@@ -234,10 +233,10 @@ namespace S4LResourceTool
 
         private void PopulateView()
         {
-            listView1.Items.Clear();
-            if (searchBox.Text.Length <= 2 || searchBox.Text == "Search for an item...")
+            resourceList.Items.Clear();
+            if (tb_searchResource.Text.Length <= 2 || tb_searchResource.Text == "Search resource..")
             {
-                listView1.Items.Add(new ListViewItem("..")
+                resourceList.Items.Add(new ListViewItem("..")
                 {
                     ImageKey = "folder"
                 });
@@ -286,7 +285,7 @@ namespace S4LResourceTool
                                 text3 = text3.Substring(num + 1);
                             }
                             string str = (_currentPath.Length > 0) ? (_currentPath + "/") : _currentPath;
-                            listView1.Items.Add(new ListViewItem(text3)
+                            resourceList.Items.Add(new ListViewItem(text3)
                             {
                                 ImageKey = "folder",
                                 Tag = str + text3
@@ -306,14 +305,14 @@ namespace S4LResourceTool
                                 listViewItem.SubItems.Add(lastWriteTime.ToShortDateString() + " " + lastWriteTime.ToShortTimeString());
                                 listViewItem.SubItems.Add(s4ZipEntry.FileName.Substring(s4ZipEntry.FileName.LastIndexOf('\\') + 1));
                                 listViewItem.SubItems.Add(s4ZipEntry.Length.ToByteString());
-                                listView1.Items.Add(listViewItem);
+                                resourceList.Items.Add(listViewItem);
                             }
                         }
                     }
                     return;
                 }
             }
-            string search = searchBox.Text;
+            string search = tb_searchResource.Text;
             foreach (S4ZipEntry s4ZipEntry2 in (from x in _zipFile.Values
                                                 where x.Name.Contains(search)
                                                 select x).ToList<S4ZipEntry>())
@@ -327,13 +326,13 @@ namespace S4LResourceTool
                 listViewItem2.SubItems.Add(lastWriteTime2.ToShortDateString() + " " + lastWriteTime2.ToShortTimeString());
                 listViewItem2.SubItems.Add(s4ZipEntry2.FileName.Substring(s4ZipEntry2.FileName.LastIndexOf('\\') + 1));
                 listViewItem2.SubItems.Add(s4ZipEntry2.Length.ToByteString());
-                listView1.Items.Add(listViewItem2);
+                resourceList.Items.Add(listViewItem2);
             }
         }
 
         private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            ListViewItem focusedItem = listView1.FocusedItem;
+            ListViewItem focusedItem = resourceList.FocusedItem;
             if (e.Button == MouseButtons.Left && focusedItem.Bounds.Contains(e.Location))
             {
                 if (focusedItem.Tag is S4ZipEntry)
@@ -362,7 +361,7 @@ namespace S4LResourceTool
 
         private void OnCtxOpen(object sender, EventArgs e)
         {
-            foreach (object obj in listView1.SelectedItems)
+            foreach (object obj in resourceList.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 object tag = listViewItem.Tag;
@@ -389,12 +388,12 @@ namespace S4LResourceTool
         [HandleProcessCorruptedStateExceptions]
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 1)
+            if (resourceList.SelectedItems.Count != 1)
             {
                 return;
             }
             string b = "";
-            string location = listView1.SelectedItems[0].SubItems[0].Text ?? "";
+            string location = resourceList.SelectedItems[0].SubItems[0].Text ?? "";
             S4ZipEntry s4ZipEntry = _zipFile.Values.FirstOrDefault((S4ZipEntry x) => x.Name == location);
             if (s4ZipEntry == null)
             {
@@ -438,10 +437,8 @@ namespace S4LResourceTool
                         }
                     case ExtensionType.Image:
                         {
-                            // hide text
                             textDisplay.Visible = false;
 
-                            // dispose old image
                             if (imageDisplay.Image != null)
                             {
                                 imageDisplay.Image.Dispose();
@@ -457,7 +454,6 @@ namespace S4LResourceTool
                             }
                             else
                             {
-                                // old‐style using‐statement
                                 using (var ms = new MemoryStream(imgData))
                                 {
                                     imageDisplay.Image = Image.FromStream(ms);
@@ -504,7 +500,7 @@ namespace S4LResourceTool
         private void bt_SaveFile_Click(object sender, EventArgs e)
         {
             string output = "";
-            if (listView1.SelectedItems.Count > 1 || listView1.SelectedItems[0].Tag is string)
+            if (resourceList.SelectedItems.Count > 1 || resourceList.SelectedItems[0].Tag is string)
             {
                 using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
                 {
@@ -519,7 +515,7 @@ namespace S4LResourceTool
                     return;
                 }
             }
-            S4ZipEntry s4ZipEntry = listView1.SelectedItems[0].Tag as S4ZipEntry;
+            S4ZipEntry s4ZipEntry = resourceList.SelectedItems[0].Tag as S4ZipEntry;
             if (s4ZipEntry != null)
             {
                 using (SaveFileDialog saveFileDialog = new SaveFileDialog())
@@ -541,7 +537,7 @@ namespace S4LResourceTool
             }
         IL_155:
             List<object> list = new List<object>();
-            foreach (object obj in listView1.SelectedItems)
+            foreach (object obj in resourceList.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 list.Add(listViewItem.Tag);
@@ -580,13 +576,13 @@ namespace S4LResourceTool
         {
             if (e.Button == MouseButtons.Right)
             {
-                string text = listView1.FocusedItem.Tag as string;
+                string text = resourceList.FocusedItem.Tag as string;
                 if (text == null || !(text == ".."))
                 {
                     listViewItemCtx.Items.Clear();
-                    if (listView1.SelectedItems.Count == 1)
+                    if (resourceList.SelectedItems.Count == 1)
                     {
-                        if (listView1.SelectedItems[0].Tag is string)
+                        if (resourceList.SelectedItems[0].Tag is string)
                         {
                             listViewItemCtx.Items.Add(new ToolStripMenuItem("Save", null, new EventHandler(OnCtxSave)));
                             listViewItemCtx.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(OnCtxDelete)));
@@ -599,7 +595,7 @@ namespace S4LResourceTool
                             listViewItemCtx.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(OnCtxDelete)));
                         }
                     }
-                    if (listView1.SelectedItems.Count > 1)
+                    if (resourceList.SelectedItems.Count > 1)
                     {
                         listViewItemCtx.Items.Add(new ToolStripMenuItem("Open", null, new EventHandler(OnCtxOpen)));
                         listViewItemCtx.Items.Add(new ToolStripMenuItem("Save", null, new EventHandler(OnCtxSave)));
@@ -613,7 +609,7 @@ namespace S4LResourceTool
 
         private void OnCtxSave(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count == 1 && listView1.SelectedItems[0].Tag is S4ZipEntry singleEntry)
+            if (resourceList.SelectedItems.Count == 1 && resourceList.SelectedItems[0].Tag is S4ZipEntry singleEntry)
             {
                 using (var dlg = new SaveFileDialog())
                 {
@@ -641,7 +637,7 @@ namespace S4LResourceTool
                 outputDir = dlg.SelectedPath;
             }
 
-            var tags = listView1.SelectedItems
+            var tags = resourceList.SelectedItems
                                  .Cast<ListViewItem>()
                                  .Select(item => item.Tag)
                                  .ToList<object>();
@@ -695,13 +691,13 @@ namespace S4LResourceTool
 
         private void OnCtxDelete(object sender, EventArgs e)
         {
-            string arg = (listView1.SelectedItems.Count == 1) ? "item" : "items";
-            if (MessageBox.Show(string.Format("Are you sure you want to delete {0} {1}?", listView1.SelectedItems.Count, arg), "Delete", MessageBoxButtons.YesNo) != DialogResult.Yes)
+            string arg = (resourceList.SelectedItems.Count == 1) ? "item" : "items";
+            if (MessageBox.Show(string.Format("Are you sure you want to delete {0} {1}?", resourceList.SelectedItems.Count, arg), "Delete", MessageBoxButtons.YesNo) != DialogResult.Yes)
             {
                 return;
             }
             List<object> list = new List<object>();
-            foreach (object obj in listView1.SelectedItems)
+            foreach (object obj in resourceList.SelectedItems)
             {
                 ListViewItem listViewItem = (ListViewItem)obj;
                 list.Add(listViewItem.Tag);
@@ -721,11 +717,11 @@ namespace S4LResourceTool
 
         private void OnCtxReplace(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 1)
+            if (resourceList.SelectedItems.Count != 1)
             {
                 return;
             }
-            S4ZipEntry s4ZipEntry = (S4ZipEntry)listView1.SelectedItems[0].Tag;
+            S4ZipEntry s4ZipEntry = (S4ZipEntry)resourceList.SelectedItems[0].Tag;
             string extension = Path.GetExtension(s4ZipEntry.Name);
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
@@ -753,18 +749,18 @@ namespace S4LResourceTool
 
         private void searchBox_Enter(object sender, EventArgs e)
         {
-            searchBox.Text = "";
-            searchBox.ForeColor = System.Drawing.Color.Black;
+            tb_searchResource.Text = "";
+            tb_searchResource.ForeColor = System.Drawing.Color.Black;
         }
 
         private void searchBox_Leave(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(searchBox.Text))
+            if (!string.IsNullOrWhiteSpace(tb_searchResource.Text))
             {
                 return;
             }
-            searchBox.Text = "Search for an item...";
-            searchBox.ForeColor = System.Drawing.Color.Silver;
+            tb_searchResource.Text = "Search for an item...";
+            tb_searchResource.ForeColor = System.Drawing.Color.Silver;
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
@@ -905,86 +901,5 @@ namespace S4LResourceTool
             }
             return $"{len:0.##} {suffixes[order]}";
         }
-
-        private void ApplyDarkMode()
-        {
-            this.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
-            this.ForeColor = System.Drawing.Color.White;
-
-            foreach (Control ctrl in this.Controls)
-            {
-                ApplyDarkStyle(ctrl);
-            }
-
-            listView1.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
-            listView1.ForeColor = System.Drawing.Color.White;
-            listView1.BorderStyle = BorderStyle.FixedSingle;
-
-            tree.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
-            tree.ForeColor = System.Drawing.Color.White;
-
-            textDisplay.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
-            textDisplay.ForeColor = System.Drawing.Color.White;
-
-            searchBox.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
-            searchBox.ForeColor = System.Drawing.Color.White;
-        }
-
-        private void ApplyDarkStyle(Control ctrl)
-        {
-            if (ctrl is Button btn)
-            {
-                btn.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
-                btn.ForeColor = System.Drawing.Color.White;
-                btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderColor = System.Drawing.Color.Gray;
-            }
-
-            if (ctrl.HasChildren)
-            {
-                foreach (Control child in ctrl.Controls)
-                {
-                    ApplyDarkStyle(child);
-                }
-            }
-        }
-
-        public static Bitmap LoadViaWic(Stream s)
-        {
-            if (s.CanSeek)
-                s.Seek(0, SeekOrigin.Begin);
-
-            var decoder = BitmapDecoder.Create(
-                s,
-                BitmapCreateOptions.PreservePixelFormat,
-                BitmapCacheOption.OnLoad
-            );
-
-            BitmapFrame frame = decoder.Frames[0];
-            var converted = new FormatConvertedBitmap(
-                frame,
-                PixelFormats.Pbgra32,
-                null,
-                0
-            );
-
-            int w = converted.PixelWidth;
-            int h = converted.PixelHeight;
-            int stride = w * (converted.Format.BitsPerPixel / 8);
-            byte[] pixels = new byte[h * stride];
-            converted.CopyPixels(pixels, stride, 0);
-
-            var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
-            var data = bmp.LockBits(
-                new Rectangle(0, 0, w, h),
-                ImageLockMode.WriteOnly,
-                bmp.PixelFormat
-            );
-            Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
-            bmp.UnlockBits(data);
-
-            return bmp;
-        }
-
     }
 }
