@@ -306,7 +306,6 @@ namespace S4LResourceTool
                                 listViewItem.SubItems.Add(lastWriteTime.ToShortDateString() + " " + lastWriteTime.ToShortTimeString());
                                 listViewItem.SubItems.Add(s4ZipEntry.FileName.Substring(s4ZipEntry.FileName.LastIndexOf('\\') + 1));
                                 listViewItem.SubItems.Add(s4ZipEntry.Length.ToByteString());
-                                //listViewItem.ForeColor = Color.Red;
                                 listView1.Items.Add(listViewItem);
                             }
                         }
@@ -328,7 +327,6 @@ namespace S4LResourceTool
                 listViewItem2.SubItems.Add(lastWriteTime2.ToShortDateString() + " " + lastWriteTime2.ToShortTimeString());
                 listViewItem2.SubItems.Add(s4ZipEntry2.FileName.Substring(s4ZipEntry2.FileName.LastIndexOf('\\') + 1));
                 listViewItem2.SubItems.Add(s4ZipEntry2.Length.ToByteString());
-                //listViewItem2.ForeColor = Color.Red;
                 listView1.Items.Add(listViewItem2);
             }
         }
@@ -440,23 +438,30 @@ namespace S4LResourceTool
                         }
                     case ExtensionType.Image:
                         {
-                            // hide text box
+                            // hide text
                             textDisplay.Visible = false;
 
                             // dispose old image
-                            imageDisplay.Image?.Dispose();
-                            imageDisplay.Image = null;
+                            if (imageDisplay.Image != null)
+                            {
+                                imageDisplay.Image.Dispose();
+                                imageDisplay.Image = null;
+                            }
 
                             byte[] imgData = s4ZipEntry.GetData();
-                            using (var ms = new MemoryStream(imgData))
+                            string ext = Path.GetExtension(s4ZipEntry.Name).ToLowerInvariant();
+
+                            if (ext == ".dds" || ext == ".tga")
                             {
-                                string ext = Path.GetExtension(s4ZipEntry.Name).ToLowerInvariant();
-                                if (ext == ".tga")
-                                    imageDisplay.Image = TgaLoader.LoadTga(ms);
-                                else if (ext == ".dds")
-                                        imageDisplay.Image = LoadViaWic(ms);
-                                else
+                                imageDisplay.Image = PfimImageLoader.Load(imgData, ext);
+                            }
+                            else
+                            {
+                                // old‐style using‐statement
+                                using (var ms = new MemoryStream(imgData))
+                                {
                                     imageDisplay.Image = Image.FromStream(ms);
+                                }
                             }
 
                             imageDisplay.SizeMode = PictureBoxSizeMode.Zoom;
@@ -608,7 +613,6 @@ namespace S4LResourceTool
 
         private void OnCtxSave(object sender, EventArgs e)
         {
-            // 1) If exactly one file entry is selected → normal SaveFileDialog
             if (listView1.SelectedItems.Count == 1 && listView1.SelectedItems[0].Tag is S4ZipEntry singleEntry)
             {
                 using (var dlg = new SaveFileDialog())
@@ -627,7 +631,6 @@ namespace S4LResourceTool
                 return;
             }
 
-            // 2) Multi-select (files and/or folders) → pick an output folder
             string outputDir;
             using (var dlg = new FolderBrowserDialog { Description = "Select a directory to save the files." })
             {
@@ -638,18 +641,15 @@ namespace S4LResourceTool
                 outputDir = dlg.SelectedPath;
             }
 
-            // 3) Build the tag list just like your original did
             var tags = listView1.SelectedItems
                                  .Cast<ListViewItem>()
-                                 .Select(item => item.Tag)  // string = folder, or S4ZipEntry
+                                 .Select(item => item.Tag)
                                  .ToList<object>();
 
-            // 4) Expand via your FileWalker
             var walker = new FileWalker(_zipFile, tags, _currentPath);
-            var allFiles = walker.GenerateList(); // List<FileWalker.FileData>
+            var allFiles = walker.GenerateList();
             if (allFiles.Count == 0) return;
 
-            // 5) Init progress bar (on UI thread)
             progressBarSave.Invoke((Action)(() =>
             {
                 progressBarSave.Minimum = 0;
@@ -659,7 +659,6 @@ namespace S4LResourceTool
                 label1.Visible = true;
             }));
 
-            // 6) Background save loop
             Task.Run(() =>
             {
                 for (int i = 0; i < allFiles.Count; i++)
@@ -667,32 +666,25 @@ namespace S4LResourceTool
                     var fileData = allFiles[i];
                     try
                     {
-                        // Normalize the relative path (turn "/" into system "\" separators)
                         string relative = fileData.Path.Replace('/', Path.DirectorySeparatorChar);
-                        // Combine with the user-picked root folder
                         string outPath = Path.Combine(outputDir, relative);
 
-                        // Ensure the directory exists
                         string folder = Path.GetDirectoryName(outPath);
                         if (!Directory.Exists(folder))
                             Directory.CreateDirectory(folder);
 
-                        // Write the file
                         File.WriteAllBytes(outPath, fileData.Entry.GetData());
                     }
                     catch
                     {
-                        // you might log errors here if you like
+                        // No
                     }
 
-                    // 7) Update progress on the UI thread
                     progressBarSave.Invoke((Action)(() =>
                     {
                         progressBarSave.Value = i + 1;
                     }));
                 }
-
-                // 8) Hide progress bar when all done
                 progressBarSave.Invoke((Action)(() =>
                 {
                     progressBarSave.Visible = false;
@@ -829,7 +821,6 @@ namespace S4LResourceTool
 
             var dropped = ((string[])e.Data.GetData(DataFormats.FileDrop))
                               .ToList();
-            // kick off recursion:
             IterateDroppedFiles(
                 prefix: (_currentPath.Length == 0) ? "" : (_currentPath + "/"),
                 paths: dropped);
@@ -960,24 +951,19 @@ namespace S4LResourceTool
 
         public static Bitmap LoadViaWic(Stream s)
         {
-            // rewind stream if needed
             if (s.CanSeek)
                 s.Seek(0, SeekOrigin.Begin);
 
-            // Create a WIC decoder over the stream
             var decoder = BitmapDecoder.Create(
                 s,
                 BitmapCreateOptions.PreservePixelFormat,
                 BitmapCacheOption.OnLoad
             );
 
-            // Grab the first frame
             BitmapFrame frame = decoder.Frames[0];
-
-            // Convert to premultiplied BGRA (Pbgra32) so GDI+ Format32bppPArgb displays alpha correctly
             var converted = new FormatConvertedBitmap(
                 frame,
-                PixelFormats.Pbgra32,    // ← premultiplied BGRA
+                PixelFormats.Pbgra32,
                 null,
                 0
             );
@@ -988,7 +974,6 @@ namespace S4LResourceTool
             byte[] pixels = new byte[h * stride];
             converted.CopyPixels(pixels, stride, 0);
 
-            // Copy into a GDI+ bitmap with premultiplied alpha
             var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
             var data = bmp.LockBits(
                 new Rectangle(0, 0, w, h),
