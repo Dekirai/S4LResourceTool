@@ -5,7 +5,7 @@ Resource Tool for S4 League
 * Extremely fast resource loader
 * Preview of content for any file type
 * Drag 'n Drop to add/replace files
-* Scan and delete unused resources in 1 saecond
+* Scan and delete unused resources in 1 second
 * Double-Click resource to edit them directly
 * Mass select and save resources
 
