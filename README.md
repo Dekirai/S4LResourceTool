@@ -1,6 +1,9 @@
 # S4LResourceTool
 Resource Tool for S4 League
 
+> [!NOTE]
+> This program does not work with Valofe's S4 League
+
 # Features
 * Extremely fast resource loader
 * Preview of content for any file type
