@@ -67,16 +67,18 @@ namespace S4LResourceTool
 
         private void Open()
         {
-            _zipFile = S4Zip.OpenZip(Settings.Default.ClientPath + "resource.s4hd");
-            if (_zipFile == null)
+            try
             {
-                MessageBox.Show("Failed to open S4Zip");
-                return;
-            }
-            _currentPath = "";
-            _extraFolders = new List<string>();
-            _deletedItems = new List<string>();
-            _extensions = new Dictionary<string, ExtensionType>
+                _zipFile = S4Zip.OpenZip(Settings.Default.ClientPath + "resource.s4hd");
+                if (_zipFile == null)
+                {
+                    MessageBox.Show("Failed to open S4Zip");
+                    return;
+                }
+                _currentPath = "";
+                _extraFolders = new List<string>();
+                _deletedItems = new List<string>();
+                _extensions = new Dictionary<string, ExtensionType>
             {
                 {
                     ".dds",
@@ -115,52 +117,70 @@ namespace S4LResourceTool
                     ExtensionType.Text
                 }
             };
-            _fileTracker = new FileTracker();
-            _fileTracker.OnChange += delegate (object sender, KeyValuePair<string, TrackData> kv)
-            {
-                base.Invoke(new Action(delegate ()
+                _fileTracker = new FileTracker();
+                _fileTracker.OnChange += delegate (object sender, KeyValuePair<string, TrackData> kv)
                 {
-                    string key = kv.Key;
-                    S4ZipEntry entry = kv.Value.Entry;
-                    if (MessageBox.Show("Do you want to apply your changes?", entry.FullName, MessageBoxButtons.YesNo) != DialogResult.Yes)
+                    base.Invoke(new Action(delegate ()
                     {
-                        return;
-                    }
-                    entry.SetData(File.ReadAllBytes(key));
-                    foreach (object obj in resourceList.Items)
-                    {
-                        ListViewItem listViewItem = (ListViewItem)obj;
-                        if (!(listViewItem.SubItems[0].Text != entry.Name))
+                        string key = kv.Key;
+                        S4ZipEntry entry = kv.Value.Entry;
+                        if (MessageBox.Show("Do you want to apply your changes?", entry.FullName, MessageBoxButtons.YesNo) != DialogResult.Yes)
                         {
-                            listViewItem.ForeColor = System.Drawing.Color.Red;
+                            return;
+                        }
+                        entry.SetData(File.ReadAllBytes(key));
+                        foreach (object obj in resourceList.Items)
+                        {
+                            ListViewItem listViewItem = (ListViewItem)obj;
+                            if (!(listViewItem.SubItems[0].Text != entry.Name))
+                            {
+                                listViewItem.ForeColor = System.Drawing.Color.Red;
+                            }
+                        }
+                        listView1_SelectedIndexChanged(null, null);
+                    }));
+                };
+                UpdateTree();
+                foreach (KeyValuePair<string, S4ZipEntry> keyValuePair in _zipFile)
+                {
+                    string extension = Path.GetExtension(keyValuePair.Value.Name);
+                    Dictionary<string, ExtensionType> extensions = _extensions;
+                    string text = extension;
+                    if (text == null)
+                    {
+                        throw new ArgumentNullException();
+                    }
+                    if (!extensions.ContainsKey(text))
+                    {
+                        _extensions.Add(extension, ExtensionType.Binary);
+                    }
+                    if (!resourceList.SmallImageList.Images.ContainsKey(extension))
+                    {
+                        using (Icon fileIcon = NativeMethods.GetFileIcon(extension, true))
+                        {
+                            resourceList.SmallImageList.Images.Add(extension, fileIcon.ToBitmap());
                         }
                     }
-                    listView1_SelectedIndexChanged(null, null);
-                }));
-            };
-            UpdateTree();
-            foreach (KeyValuePair<string, S4ZipEntry> keyValuePair in _zipFile)
+                }
+                PopulateView();
+            }
+            catch
             {
-                string extension = Path.GetExtension(keyValuePair.Value.Name);
-                Dictionary<string, ExtensionType> extensions = _extensions;
-                string text = extension;
-                if (text == null)
+                string output = "";
+                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
                 {
-                    throw new ArgumentNullException();
-                }
-                if (!extensions.ContainsKey(text))
+                    Description = "Old folder no longer exists, please re-select the S4 League directory."
+                })
                 {
-                    _extensions.Add(extension, ExtensionType.Binary);
-                }
-                if (!resourceList.SmallImageList.Images.ContainsKey(extension))
-                {
-                    using (Icon fileIcon = NativeMethods.GetFileIcon(extension, true))
+                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
                     {
-                        resourceList.SmallImageList.Images.Add(extension, fileIcon.ToBitmap());
+                        output = folderBrowserDialog.SelectedPath + "/";
+                        Settings.Default.ClientPath = output;
+                        Settings.Default.Save();
                     }
                 }
+                Open();
             }
-            PopulateView();
         }
 
         private void button1_Click(object sender, EventArgs e)
