@@ -32,6 +32,7 @@ namespace S4LResourceTool
         public static List<string> _deletedItems = new List<string>();
         private Dictionary<string, ExtensionType> _extensions;
         private bool _confirmReplacements = true;
+        private string _lastFullName = "";
 
         public MainForm()
         {
@@ -409,88 +410,66 @@ namespace S4LResourceTool
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (resourceList.SelectedItems.Count != 1)
-            {
                 return;
-            }
-            string b = "";
-            string location = resourceList.SelectedItems[0].SubItems[0].Text ?? "";
-            S4ZipEntry s4ZipEntry = _zipFile.Values.FirstOrDefault((S4ZipEntry x) => x.Name == location);
-            if (s4ZipEntry == null)
-            {
+
+            var lvi = resourceList.SelectedItems[0];
+            var entry = lvi.Tag as S4ZipEntry;
+            if (entry == null)
                 return;
-            }
-            if (location == b)
-            {
+
+            if (entry.FullName == _lastFullName)
                 return;
-            }
+            _lastFullName = entry.FullName;
+
+            string extension = Path.GetExtension(entry.Name).ToLowerInvariant();
+            ExtensionType extensionType = ExtensionType.Binary;
+            if (_extensions.TryGetValue(extension, out var et))
+                extensionType = et;
+
             try
             {
-                string extension = Path.GetExtension(s4ZipEntry.Name);
-                ExtensionType extensionType = ExtensionType.Binary;
-                foreach (KeyValuePair<string, ExtensionType> keyValuePair in _extensions)
-                {
-                    if (extension == keyValuePair.Key)
-                    {
-                        extensionType = keyValuePair.Value;
-                    }
-                }
-                try
-                {
-                    textDisplay.Enabled = false;
-                    textDisplay.Visible = false;
-                }
-                catch
-                {
-                }
+                textDisplay.Visible = false;
+                imageDisplay.Visible = false;
+
                 switch (extensionType)
                 {
-                    case ExtensionType.Binary:
                     case ExtensionType.Text:
-                        {
-                            string @string = Encoding.UTF8.GetString(s4ZipEntry.GetData());
-                            textDisplay.Enabled = true;
-                            textDisplay.Visible = true;
-                            imageDisplay.Enabled = false;
-                            imageDisplay.Visible = false;
-                            textDisplay.Text = @string;
-                            break;
-                        }
+                    case ExtensionType.Binary:
+                        string text = Encoding.UTF8.GetString(entry.GetData());
+                        textDisplay.Text = text;
+                        textDisplay.Enabled = true;
+                        textDisplay.Visible = true;
+                        break;
+
                     case ExtensionType.Image:
+                        if (imageDisplay.Image != null)
                         {
-                            textDisplay.Visible = false;
-
-                            if (imageDisplay.Image != null)
-                            {
-                                imageDisplay.Image.Dispose();
-                                imageDisplay.Image = null;
-                            }
-
-                            byte[] imgData = s4ZipEntry.GetData();
-                            string ext = Path.GetExtension(s4ZipEntry.Name).ToLowerInvariant();
-
-                            if (ext == ".dds" || ext == ".tga")
-                            {
-                                imageDisplay.Image = PfimImageLoader.Load(imgData, ext);
-                            }
-                            else
-                            {
-                                using (var ms = new MemoryStream(imgData))
-                                {
-                                    imageDisplay.Image = Image.FromStream(ms);
-                                }
-                            }
-
-                            imageDisplay.SizeMode = PictureBoxSizeMode.Zoom;
-                            imageDisplay.Visible = true;
-                            break;
+                            imageDisplay.Image.Dispose();
+                            imageDisplay.Image = null;
                         }
+
+                        var imgData = entry.GetData();
+                        if (extension == ".dds" || extension == ".tga")
+                        {
+                            imageDisplay.Image = PfimImageLoader.Load(imgData, extension);
+                        }
+                        else
+                        {
+                            using (var ms = new MemoryStream(imgData))
+                                imageDisplay.Image = Image.FromStream(ms);
+                        }
+
+                        imageDisplay.SizeMode = PictureBoxSizeMode.Zoom;
+                        imageDisplay.Visible = true;
+                        break;
+
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        break;
                 }
-                b = location;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Error loading \"{entry.FullName}\": {ex}");
             }
         }
 
