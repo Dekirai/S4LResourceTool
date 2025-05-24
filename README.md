@@ -52,7 +52,7 @@
 ## 📚 Libraries & References
 
 - [S4Zip (NetspherePirates/S4Zip.cs)](https://github.com/wtfblub/NetspherePirates/blob/dev/src/Netsphere.Resource/S4Zip.cs)  
-- [BlubLib (BlubLib)](https://gitlab.com/wtfblub/BlubLib/-/tree/dev/src/BlubLib)  
+- [BlubLib](https://gitlab.com/wtfblub/BlubLib/-/tree/dev/src/BlubLib)  
 
 ---
 
